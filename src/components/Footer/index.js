@@ -1,35 +1,35 @@
+// import {Component} from 'react'
+
 import {
-  FaPinterestSquare,
   FaInstagram,
-  FaTwitter,
+  FaPinterestSquare,
+  FaTwitterSquare,
   FaFacebookSquare,
 } from 'react-icons/fa'
 
 import './index.css'
 
-const Footer = () => (
-  <div className="footer-container">
-    <div className="footer-heading-container">
-      <img
-        src="https://res.cloudinary.com/nsp/image/upload/v1635840304/tastyKitchens/logowhite_t8wfhc.png"
-        alt="website-footer-logo"
-        className="website-footer-logo"
-      />
-      <h1 className="footer-heading">Tasty Kitchens</h1>
-    </div>
-    <p className="footer-para">
-      The only thing we are serious about is food. Contact us on
-    </p>
-    <div className="social-container">
-      <FaPinterestSquare
-        testid="pintrest-social-icon"
-        className="social-icon"
-      />
-      <FaInstagram testid="instagram-social-icon" className="social-icon" />
-      <FaTwitter testid="twitter-social-icon" className="social-icon" />
-      <FaFacebookSquare testid="facebook-social-icon" className="social-icon" />
-    </div>
-  </div>
-)
+const url =
+  'https://res.cloudinary.com/dppqkea7f/image/upload/v1625978524/footer-icon_cs8bzb.png'
 
+function Footer() {
+  return (
+    <div className="footer-container">
+      <div className="log-heading">
+        <img src={url} alt="website-footer-logo" className="footer-image" />
+        <h1 className="main-heading">Tasty Kitchens</h1>
+      </div>
+
+      <p className="paragraph">
+        The only thing we are serious about is food. Contact us on
+      </p>
+      <div className="contacts">
+        <FaPinterestSquare className="logos" testid="pintrest-social-icon" />
+        <FaInstagram className="logos" testid="instagram-social-icon" />
+        <FaTwitterSquare className="logos" testid="twitter-social-icon" />
+        <FaFacebookSquare className="logos" testid="facebook-social-icon" />
+      </div>
+    </div>
+  )
+}
 export default Footer

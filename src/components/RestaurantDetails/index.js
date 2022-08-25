@@ -1,199 +1,210 @@
 import {Component} from 'react'
 import Cookies from 'js-cookie'
-import Loader from 'react-loader-spinner'
+import {BiRupee} from 'react-icons/bi'
 import {AiFillStar} from 'react-icons/ai'
-
-import Header from '../Header'
+import Loader from 'react-loader-spinner'
+import NavBar from '../NavBar/NavBar'
+import FoodItem from '../FoodItem/index'
 import Footer from '../Footer'
-import RestaurantFoodItem from '../RestaurantFoodItem'
+import restaurantClass from './RestaurantDetails.module.css'
 
-import './index.css'
-
-const apiStatusConstants = {
+const restaurantsApiStatusConstants = {
   initial: 'INITIAL',
   success: 'SUCCESS',
   failure: 'FAILURE',
   inProgress: 'IN_PROGRESS',
 }
 
-class RestaurantDetails extends Component {
+class RestaurantDetailsRoute extends Component {
   state = {
-    restaurantData: {},
-    foodItemData: [],
-    apiStatus: apiStatusConstants.initial,
+    apiStatus: restaurantsApiStatusConstants.initial,
+    restaurantData: [],
+    loadFooter: false,
   }
 
+  // component did mount method
   componentDidMount() {
     this.getRestaurantData()
+    window.scrollTo(0, 0)
   }
 
-  getFormattedData = data => ({
-    id: data.id,
-    imageUrl: data.image_url,
-    rating: data.rating,
-    name: data.name,
-    reviewsCount: data.reviews_count,
-    location: data.location,
-    costForTwo: data.cost_for_two,
-    cuisine: data.cuisine,
-  })
+  // convert snake case to camel case
 
-  getFoodItemFormattedData = data => ({
-    imageUrl: data.image_url,
-    name: data.name,
-    cost: data.cost,
-    rating: data.rating,
-    id: data.id,
-  })
+  convertItemsData = foodArray => {
+    const item = {
+      cost: foodArray.cost,
+      foodType: foodArray.food_type,
+      id: foodArray.id,
+      imageUrl: foodArray.image_url,
+      name: foodArray.name,
+      rating: foodArray.rating,
+    }
+
+    return item
+  }
+
+  convertData = object => {
+    const converted = {
+      costForTwo: object.cost_for_two,
+      cuisine: object.cuisine,
+      foodItems: object.food_items.map(eachItem =>
+        this.convertItemsData(eachItem),
+      ),
+      restaurantId: object.id,
+      imageUrl: object.image_url,
+      itemCount: object.items_count,
+      location: object.location,
+      name: object.name,
+      opensAt: object.opens_at,
+      rating: object.rating,
+      reviewsCount: object.reviews_count,
+    }
+    return converted
+  }
+
+  // get restaurant details
 
   getRestaurantData = async () => {
+    this.setState({apiStatus: restaurantsApiStatusConstants.inProgress})
     const {match} = this.props
     const {params} = match
     const {id} = params
-
-    this.setState({
-      apiStatus: apiStatusConstants.inProgress,
-    })
     const jwtToken = Cookies.get('jwt_token')
     const apiUrl = `https://apis.ccbp.in/restaurants-list/${id}`
     const options = {
+      method: 'GET',
       headers: {
         Authorization: `Bearer ${jwtToken}`,
       },
-      method: 'GET',
     }
     const response = await fetch(apiUrl, options)
-    if (response.ok) {
-      const fetchedData = await response.json()
-      const updatedData = this.getFormattedData(fetchedData)
-      const updatedFoodItemData = fetchedData.food_items.map(eachItem =>
-        this.getFoodItemFormattedData(eachItem),
-      )
+    // console.log(response)
+    const data = await response.json()
+    // console.log(data)
+    if (response.ok === true) {
+      const convertedData = this.convertData(data)
       this.setState({
-        restaurantData: updatedData,
-        foodItemData: updatedFoodItemData,
-        apiStatus: apiStatusConstants.success,
-      })
-    } else {
-      this.setState({
-        apiStatus: apiStatusConstants.failure,
+        apiStatus: restaurantsApiStatusConstants.success,
+        restaurantData: convertedData,
+        loadFooter: true,
       })
     }
   }
 
-  renderRestaurantDetailsView = () => {
-    const {restaurantData, foodItemData} = this.state
-    const {
-      imageUrl,
-      rating,
-      name,
-      location,
-      reviewsCount,
-      costForTwo,
-      cuisine,
-    } = restaurantData
+  // restaurant loader
 
+  restaurantsDisplayLoading = () => (
+    <div className={restaurantClass.Loader} testid="restaurant-details-loader">
+      <Loader type="ThreeDots" color="#0b69ff" height="50" width="50" />
+    </div>
+  )
+
+  // restaurants view
+
+  restaurantView = () => {
+    const {restaurantData} = this.state
+
+    const {
+      costForTwo,
+      name,
+      restaurantId,
+      cuisine,
+      imageUrl,
+      location,
+      rating,
+      reviewsCount,
+    } = restaurantData
+    // console.log(reviewsCount)
+    // console.log(costForTwo)
+
+    // console.log(foodItems)
     return (
-      <>
-        <div className="specific-restaurant-details-container">
-          <div className="restaurant-banner-container">
-            <div className="banner-responsive-container">
-              <img
-                src={imageUrl}
-                alt="restaurant"
-                className="specific-restaurant-image"
-              />
-              <div className="banner-details-container">
-                <h1 className="specific-restaurant-name">{name}</h1>
-                <p className="specific-restaurant-cuisine">{cuisine}</p>
-                <p className="specific-restaurant-location">{location}</p>
-                <div className="rating-cost-container">
-                  <div className="specific-restaurant-rating-container">
-                    <div className="rating-container">
-                      <AiFillStar className="restaurant-details-star" />
-                      <p className="specific-restaurant-rating">{rating}</p>
-                    </div>
-                    <p className="specific-restaurant-reviews">
-                      {reviewsCount}+ Ratings
-                    </p>
-                  </div>
-                  <hr className="line" />
-                  <div className="cost-container">
-                    <p className="specific-restaurant-cost">{costForTwo}</p>
-                    <p className="specific-restaurant-cost-text">
-                      Cost for two
-                    </p>
-                  </div>
+      <div className={restaurantClass.MainContainer}>
+        <div className={restaurantClass.RestaurantContainer} key={restaurantId}>
+          <img
+            src={imageUrl}
+            alt="restaurant"
+            className={restaurantClass.img}
+          />
+          <div className={restaurantClass.DetailsContainer}>
+            <h1 className={restaurantClass.Name}>{name}</h1>
+            <p className={restaurantClass.Cuisine}>{cuisine}</p>
+            <p className={restaurantClass.Location}>{location}</p>
+            <div className={restaurantClass.RatingAndCostContainer}>
+              <div className={restaurantClass.RatingsContainer}>
+                <div className={restaurantClass.Ratings}>
+                  <AiFillStar className={restaurantClass.Star} />
+                  <p className={restaurantClass.RatingPara}>{rating}</p>
                 </div>
+                <p className={restaurantClass.Reviews}>
+                  {reviewsCount}+ Ratings
+                </p>
+              </div>
+              <div className={restaurantClass.VerticalLine}>
+                <p style={{display: 'none'}}>.</p>
+              </div>
+              <div className={restaurantClass.CostContainer}>
+                <div className={restaurantClass.Cost}>
+                  <BiRupee className={restaurantClass.Rupee} />
+                  <p className={restaurantClass.CostForTwo}>{costForTwo}</p>
+                </div>
+                <p className={restaurantClass.CostPara}>Cost for two</p>
               </div>
             </div>
           </div>
-          <ul className="food-item-list-container">
-            {foodItemData.map(eachFoodItem => (
-              <RestaurantFoodItem
-                eachFoodItem={eachFoodItem}
-                key={eachFoodItem.id}
-              />
-            ))}
-          </ul>
         </div>
-        <Footer />
-      </>
+        {this.foodItemsView()}
+      </div>
     )
   }
 
-  renderLoadingView = () => (
-    <div
-      testid="restaurant-details-loader"
-      className="restaurant-loader-container"
-    >
-      <Loader type="Oval" color="#F7931E" height="50" width="50" />
-    </div>
-  )
+  // food items view
 
-  renderFailureView = () => (
-    <div className="restaurant-error-view-container">
-      <img
-        src="https://res.cloudinary.com/nsp/image/upload/v1635664104/tastyKitchens/error_1x_csgpog.png"
-        alt="restaurants failure"
-        className="restaurant-failure-img"
-      />
-      <h1 className="restaurant-failure-heading-text">Page Not Found</h1>
-      <p className="restaurant-failure-description">
-        we are sorry, the page you requested could not be found Please go back
-        to the homepage
-      </p>
-      <button className="error-button" type="button">
-        Home Page
-      </button>
-    </div>
-  )
+  foodItemsView = () => {
+    const {restaurantData} = this.state
+    const {foodItems} = restaurantData
 
-  renderRestaurantDetails = () => {
+    // console.log(foodItems)
+    return (
+      <ul className={restaurantClass.FoodItemsContainer}>
+        {foodItems.map(eachItem => (
+          <FoodItem key={eachItem.id} foodItem={eachItem} />
+        ))}
+      </ul>
+    )
+  }
+
+  // on render restaurants details
+  onRenderDisplayRestaurantDetails = () => {
     const {apiStatus} = this.state
 
     switch (apiStatus) {
-      case apiStatusConstants.success:
-        return this.renderRestaurantDetailsView()
-      case apiStatusConstants.failure:
-        return this.renderFailureView()
-      case apiStatusConstants.inProgress:
-        return this.renderLoadingView()
+      case restaurantsApiStatusConstants.success:
+        return this.restaurantView()
+      case restaurantsApiStatusConstants.inProgress:
+        return this.restaurantsDisplayLoading()
+      case restaurantsApiStatusConstants.failure:
+        return null
       default:
         return null
     }
   }
 
   render() {
+    /* const {match} = this.props
+    const {params} = match
+    const {id} = params */
+    const {loadFooter} = this.state
     return (
       <>
-        <Header />
-        <div className="Restaurant-details-container">
-          {this.renderRestaurantDetails()}
+        <div className={restaurantClass.BackgroundContainer}>
+          <NavBar />
+          {this.onRenderDisplayRestaurantDetails()}
+          {loadFooter && <Footer />}
         </div>
       </>
     )
   }
 }
 
-export default RestaurantDetails
+export default RestaurantDetailsRoute

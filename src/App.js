@@ -1,29 +1,30 @@
-import {Switch, Redirect, Route} from 'react-router-dom'
-
+import {Component} from 'react'
+import {Route, Switch, Redirect} from 'react-router-dom'
+import LoginRoute from './components/LoginRoute'
+import HomeRoute from './components/HomeRoute'
+import RestaurantDetailsRoute from './components/RestaurantDetails'
 import ProtectedRoute from './components/ProtectedRoute'
-
-import LoginForm from './components/LoginForm'
-
-import Home from './components/Home'
-import RestaurantDetails from './components/RestaurantDetails'
-import Cart from './components/Cart'
-import NotFound from './components/NotFound'
-
+import CartRoute from './components/CartRoute'
+import NotFound from './components/NotFoundRoute/index'
 import './App.css'
 
-const App = () => (
-  <Switch>
-    <Route exact path="/login" component={LoginForm} />
-    <ProtectedRoute exact path="/" component={Home} />
-    <ProtectedRoute
-      exact
-      path="/restaurant/:id"
-      component={RestaurantDetails}
-    />
-    <ProtectedRoute exact path="/cart" component={Cart} />
-    <Route path="/not-found" component={NotFound} />
-    <Redirect to="not-found" />
-  </Switch>
-)
+class App extends Component {
+  render() {
+    return (
+      <Switch>
+        <Route exact path="/login" component={LoginRoute} />
+        <ProtectedRoute exact path="/" component={HomeRoute} />
+        <ProtectedRoute
+          exact
+          path="/restaurant/:id"
+          component={RestaurantDetailsRoute}
+        />
+        <ProtectedRoute exact path="/cart" component={CartRoute} />
+        <Route exact path="/not-found" component={NotFound} />
+        <Redirect to="not-found" />
+      </Switch>
+    )
+  }
+}
 
 export default App
